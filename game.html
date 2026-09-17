@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Suica Sprint — Play &amp; Win | $SUICA</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+
+  :root{
+    --bg-void: #060a13;
+    --bg-deep: #0b1526;
+    --bg-panel: #101d33;
+    --blue-glow: #4fd8ff;
+    --blue-glow-soft: #8ff0ff;
+    --blue-deep: #1c3a63;
+    --ink: #eaf6ff;
+    --ink-dim: #93a8c2;
+    --ink-dimmer: #5c728c;
+    --line: rgba(143, 240, 255, 0.14);
+    --amber: #ffc773;
+  }
+
+  *{box-sizing:border-box;}
+
+  body{
+    margin:0;
+    min-height:100vh;
+    background:radial-gradient(1200px 700px at 50% -10%, rgba(79,216,255,0.12), transparent 60%), var(--bg-void);
+    color:var(--ink);
+    font-family:'Baloo 2', system-ui, sans-serif;
+    -webkit-font-smoothing:antialiased;
+    padding-bottom:40px;
+  }
+
+  .mono{font-family:'JetBrains Mono', monospace;}
+
+  .topbar{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:18px 5vw;
+  }
+  .back-link{
+    color:var(--ink-dim);
+    text-decoration:none;
+    font-weight:700;
+  }
+  .back-link:hover{color:var(--blue-glow-soft);}
+  .week-pill{
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.78rem;
+    color:var(--blue-glow-soft);
+    background:var(--bg-panel);
+    border:1px solid var(--line);
+    padding:6px 14px;
+    border-radius:999px;
+  }
+
+  .wrap{
+    max-width:760px;
+    margin:0 auto;
+    padding:0 5vw;
+  }
+
+  .demo-banner{
+    background:rgba(255,199,115,0.1);
+    border:1px solid rgba(255,199,115,0.35);
+    color:var(--amber);
+    border-radius:14px;
+    padding:12px 16px;
+    font-size:0.85rem;
+    line-height:1.5;
+    margin-bottom:22px;
+  }
+
+  .panel{
+    background:var(--bg-panel);
+    border:1px solid var(--line);
+    border-radius:22px;
+    padding:34px 30px;
+    box-shadow:0 0 50px rgba(79,216,255,0.08);
+  }
+
+  .screen{display:none;}
+  .screen.active{display:block;}
+
+  h1{
+    font-size:clamp(1.8rem, 5vw, 2.6rem);
+    margin:0 0 10px;
+    font-weight:800;
+  }
+  h2{
+    font-size:1.5rem;
+    margin:0 0 6px;
+    font-weight:800;
+  }
+  p{
+    color:var(--ink-dim);
+    line-height:1.55;
+  }
+  .fine{
+    color:var(--ink-dimmer);
+    font-size:0.8rem;
+  }
+
+  form{margin-top:22px;}
+  label{
+    display:block;
+    font-size:0.85rem;
+    font-weight:700;
+    color:var(--ink-dim);
+    margin-bottom:18px;
+  }
+  input{
+    display:block;
+    width:100%;
+    margin-top:8px;
+    padding:13px 16px;
+    border-radius:12px;
+    border:1px solid var(--line);
+    background:var(--bg-deep);
+    color:var(--ink);
+    font-family:inherit;
+    font-size:1rem;
+  }
+  input:focus{outline:2px solid var(--blue-glow-soft); outline-offset:1px;}
+
+  .btn{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    padding:14px 26px;
+    border-radius:999px;
+    font-weight:700;
+    font-size:1rem;
+    text-decoration:none;
+    border:1px solid transparent;
+    cursor:pointer;
+    transition:transform 0.18s ease, box-shadow 0.18s ease;
+    font-family:inherit;
+  }
+  .btn:hover{transform:translateY(-2px);}
+  .btn-primary{
+    background:var(--blue-glow);
+    color:#04121e;
+    box-shadow:0 0 30px rgba(79,216,255,0.5);
+  }
+  .btn-ghost{
+    background:rgba(234,246,255,0.04);
+    border-color:var(--line);
+    color:var(--ink);
+  }
+  .btn-ghost:hover{border-color:var(--blue-glow-soft);}
+
+  .hud{
+    display:flex;
+    justify-content:space-between;
+    flex-wrap:wrap;
+    gap:10px;
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.85rem;
+    color:var(--ink-dim);
+    margin-bottom:14px;
+  }
+  .hud b{color:var(--blue-glow-soft);}
+
+  .stage{
+    position:relative;
+    border-radius:16px;
+    overflow:hidden;
+    border:1px solid var(--line);
+    background:linear-gradient(to bottom, #0d1a2e 0%, #0a1424 100%);
+  }
+  canvas{
+    display:block;
+    width:100%;
+    height:auto;
+    touch-action:manipulation;
+  }
+  .stage-overlay{
+    position:absolute;
+    inset:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    flex-direction:column;
+    gap:10px;
+    text-align:center;
+    background:rgba(6,10,19,0.55);
+    font-weight:700;
+    padding:20px;
+  }
+  .stage-overlay.hidden{display:none;}
+  .stage-overlay .tap-hint{
+    font-size:0.85rem;
+    color:var(--ink-dim);
+    font-weight:600;
+  }
+
+  .hint{
+    text-align:center;
+    color:var(--ink-dimmer);
+    font-size:0.8rem;
+    margin-top:12px;
+  }
+
+  ol#leaderboard-list{
+    list-style:none;
+    padding:0;
+    margin:20px 0 0;
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+  }
+  .lb-row{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    padding:12px 16px;
+    background:var(--bg-deep);
+    border:1px solid var(--line);
+    border-radius:14px;
+  }
+  .lb-row.top5{
+    border-color:var(--blue-glow-soft);
+    box-shadow:0 0 20px rgba(79,216,255,0.18);
+  }
+  .lb-rank{
+    font-family:'JetBrains Mono', monospace;
+    font-weight:800;
+    width:28px;
+    color:var(--blue-glow-soft);
+  }
+  .lb-name{flex:1; font-weight:700; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .lb-wallet{
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.72rem;
+    color:var(--ink-dimmer);
+  }
+  .lb-score{
+    font-family:'JetBrains Mono', monospace;
+    font-weight:700;
+    color:var(--ink);
+  }
+  .lb-empty{color:var(--ink-dimmer); text-align:center; padding:20px 0;}
+
+  .actions{
+    display:flex;
+    gap:14px;
+    flex-wrap:wrap;
+    margin-top:24px;
+  }
+
+  .switch-note{
+    margin-top:16px;
+    font-size:0.8rem;
+    color:var(--ink-dimmer);
+  }
+  .switch-note button{
+    background:none;
+    border:none;
+    color:var(--blue-glow-soft);
+    font-weight:700;
+    cursor:pointer;
+    font-family:inherit;
+    font-size:inherit;
+    padding:0;
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <a class="back-link mono" href="index.html">&larr; $SUICA</a>
+  <div class="week-pill" id="week-pill">Week —</div>
+</div>
+
+<div class="wrap">
+
+  <div class="demo-banner">
+    ⚠️ <strong>Demo mode:</strong> scores are stored on this device only right now — this is not yet a shared, cross-device leaderboard. Real weekly rewards will start once the live leaderboard is switched on.
+  </div>
+
+  <!-- SIGN UP -->
+  <section id="screen-signup" class="screen active panel">
+    <h1>Suica Sprint</h1>
+    <p>Tap to jump. Dodge the gates. Survive as long as you can — the top 5 runners each week share the reward pool.</p>
+    <form id="signup-form">
+      <label>Username
+        <input id="username" maxlength="18" required placeholder="e.g. RabbitRunner" autocomplete="off">
+      </label>
+      <label>Sui wallet address
+        <input id="wallet" required placeholder="0x..." autocomplete="off">
+      </label>
+      <button class="btn btn-primary" type="submit">Save &amp; Play</button>
+    </form>
+    <p class="fine" style="margin-top:18px;">Double-check your wallet address — weekly rewards are sent to whatever address is registered here.</p>
+  </section>
+
+  <!-- GAME -->
+  <section id="screen-game" class="screen panel">
+    <div class="hud">
+      <span>Runner: <b id="hud-name">—</b></span>
+      <span>Score: <b id="hud-score">0</b></span>
+      <span>Best (this device): <b id="hud-best">0</b></span>
+    </div>
+    <div class="stage">
+      <canvas id="game-canvas" width="800" height="300"></canvas>
+      <div class="stage-overlay" id="stage-overlay">
+        <div id="overlay-title">Tap to start</div>
+        <div class="tap-hint">Tap / click / space / ↑ to jump</div>
+      </div>
+    </div>
+    <p class="hint">Tap, click, press Space, or press ↑ to jump. Don't hit the gates.</p>
+    <p class="switch-note">Playing as <b id="switch-name">—</b> · <button type="button" id="switch-profile-btn">not you?</button></p>
+  </section>
+
+  <!-- LEADERBOARD / GAME OVER -->
+  <section id="screen-leaderboard" class="screen panel">
+    <h2 id="lb-title">Run over</h2>
+    <p id="lb-subtitle">Score: 0</p>
+    <p class="fine">Resets every Monday 00:00 UTC. Top 5 runners split the weekly reward pool.</p>
+    <ol id="leaderboard-list"></ol>
+    <div class="actions">
+      <button class="btn btn-primary" id="play-again-btn">Play again</button>
+      <a class="btn btn-ghost" href="index.html">Back to site</a>
+    </div>
+  </section>
+
+</div>
+
+<script>
+(function(){
+
+  /* ============================================================
+     STORAGE LAYER — LOCAL DEMO VERSION
+     Everything below in this block reads/writes localStorage only,
+     so scores are per-device, not shared across visitors.
+     To go live with a real shared leaderboard, replace the bodies
+     of loadProfile / saveProfile / submitScore / getTopScores with
+     calls to a real backend (e.g. Firebase Firestore + Anonymous
+     Auth) — keep the same function names/signatures so nothing else
+     in this file needs to change.
+     ============================================================ */
+  var PROFILE_KEY = 'suica_profile';
+  var SCORES_KEY  = 'suica_scores_v1';
+
+  var Store = {
+    loadProfile: function(){
+      try { return JSON.parse(localStorage.getItem(PROFILE_KEY)); }
+      catch(e){ return null; }
+    },
+    saveProfile: function(profile){
+      try { localStorage.setItem(PROFILE_KEY, JSON.stringify(profile)); } catch(e){}
+    },
+    submitScore: function(wallet, username, score, week){
+      var all;
+      try { all = JSON.parse(localStorage.getItem(SCORES_KEY)) || {}; } catch(e){ all = {}; }
+      var key = week + '_' + wallet.toLowerCase();
+      var existing = all[key];
+      if(!existing || score > existing.score){
+        all[key] = { wallet: wallet, username: username, score: score, week: week, updatedAt: Date.now() };
+        try { localStorage.setItem(SCORES_KEY, JSON.stringify(all)); } catch(e){}
+      }
+    },
+    getTopScores: function(week, limit){
+      var all;
+      try { all = JSON.parse(localStorage.getItem(SCORES_KEY)) || {}; } catch(e){ all = {}; }
+      return Object.keys(all)
+        .map(function(k){ return all[k]; })
+        .filter(function(s){ return s.week === week; })
+        .sort(function(a,b){ return b.score - a.score; })
+        .slice(0, limit);
+    },
+    getBestForWallet: function(wallet, week){
+      var top = Store.getTopScores(week, 1000);
+      var mine = top.filter(function(s){ return s.wallet.toLowerCase() === wallet.toLowerCase(); });
+      return mine.length ? mine[0].score : 0;
+    }
+  };
+
+  /* ---------------- week key (UTC ISO week) ---------------- */
+  function getWeekKey(date){
+    date = date || new Date();
+    var d = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
+    var dayNum = d.getUTCDay() || 7;
+    d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+    var yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+    var weekNo = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+    return d.getUTCFullYear() + '-W' + String(weekNo).padStart(2, '0');
+  }
+  var CURRENT_WEEK = getWeekKey();
+  document.getElementById('week-pill').textContent = 'Week ' + CURRENT_WEEK;
+
+  /* ---------------- screens ---------------- */
+  var screens = {
+    signup: document.getElementById('screen-signup'),
+    game: document.getElementById('screen-game'),
+    leaderboard: document.getElementById('screen-leaderboard')
+  };
+  function showScreen(name){
+    Object.keys(screens).forEach(function(k){
+      screens[k].classList.toggle('active', k === name);
+    });
+  }
+
+  /* ---------------- sign up ---------------- */
+  var form = document.getElementById('signup-form');
+  var usernameInput = document.getElementById('username');
+  var walletInput = document.getElementById('wallet');
+  var hudName = document.getElementById('hud-name');
+  var hudBest = document.getElementById('hud-best');
+  var switchName = document.getElementById('switch-name');
+  var currentProfile = null;
+
+  var existingProfile = Store.loadProfile();
+  if(existingProfile){
+    usernameInput.value = existingProfile.username || '';
+    walletInput.value = existingProfile.wallet || '';
+  }
+
+  function walletLooksValid(w){
+    return /^0x[a-fA-F0-9]{6,}$/.test(w.trim());
+  }
+
+  function enterGameWithProfile(profile){
+    currentProfile = profile;
+    Store.saveProfile(profile);
+    hudName.textContent = profile.username;
+    switchName.textContent = profile.username;
+    hudBest.textContent = Store.getBestForWallet(profile.wallet, CURRENT_WEEK);
+    showScreen('game');
+    resetGame();
+  }
+
+  form.addEventListener('submit', function(e){
+    e.preventDefault();
+    var username = usernameInput.value.trim();
+    var wallet = walletInput.value.trim();
+    if(username.length < 2){
+      alert('Enter a username (at least 2 characters).');
+      return;
+    }
+    if(!walletLooksValid(wallet)){
+      alert('Enter a valid wallet address starting with 0x.');
+      return;
+    }
+    enterGameWithProfile({ username: username, wallet: wallet });
+  });
+
+  document.getElementById('switch-profile-btn').addEventListener('click', function(){
+    showScreen('signup');
+  });
+
+  /* ---------------- game ---------------- */
+  var canvas = document.getElementById('game-canvas');
+  var ctx = canvas.getContext('2d');
+  var overlay = document.getElementById('stage-overlay');
+  var overlayTitle = document.getElementById('overlay-title');
+  var hudScore = document.getElementById('hud-score');
+
+  var W = canvas.width, H = canvas.height;
+  var GROUND_Y = H - 46;
+  var GRAVITY = 0.62;
+  var JUMP_VELOCITY = -11.6;
+
+  var state = 'ready'; // ready | running | over
+  var player, obstacles, speed, distance, score, spawnTimer, nextSpawnIn, rafId;
+
+  function resetGame(){
+    player = { x: 70, y: GROUND_Y, vy: 0, w: 30, h: 40, onGround: true };
+    obstacles = [];
+    speed = 6;
+    distance = 0;
+    score = 0;
+    spawnTimer = 0;
+    nextSpawnIn = 60;
+    state = 'ready';
+    overlayTitle.textContent = 'Tap to start';
+    overlay.classList.remove('hidden');
+    hudScore.textContent = '0';
+    draw();
+  }
+
+  function jump(){
+    if(state === 'ready'){
+      startRun();
+      return;
+    }
+    if(state === 'running' && player.onGround){
+      player.vy = JUMP_VELOCITY;
+      player.onGround = false;
+    }
+  }
+
+  function startRun(){
+    state = 'running';
+    overlay.classList.add('hidden');
+    if(rafId) cancelAnimationFrame(rafId);
+    rafId = requestAnimationFrame(loop);
+  }
+
+  function spawnObstacle(){
+    var h = 34 + Math.random() * 34;
+    obstacles.push({ x: W + 10, y: GROUND_Y - h + 40, w: 22, h: h });
+  }
+
+  function loop(){
+    if(state !== 'running') return;
+
+    // difficulty ramp
+    speed = Math.min(13, 6 + score * 0.012);
+
+    // spawn logic
+    spawnTimer++;
+    if(spawnTimer >= nextSpawnIn){
+      spawnObstacle();
+      spawnTimer = 0;
+      nextSpawnIn = Math.max(38, 75 - speed * 3 + Math.random() * 20);
+    }
+
+    // physics
+    player.vy += GRAVITY;
+    player.y += player.vy;
+    if(player.y >= GROUND_Y){
+      player.y = GROUND_Y;
+      player.vy = 0;
+      player.onGround = true;
+    }
+
+    // obstacles
+    for(var i = obstacles.length - 1; i >= 0; i--){
+      obstacles[i].x -= speed;
+      if(obstacles[i].x + obstacles[i].w < 0){
+        obstacles.splice(i, 1);
+      }
+    }
+
+    // score / distance
+    distance += speed;
+    score = Math.floor(distance / 8);
+    hudScore.textContent = score;
+
+    // collision (AABB, with a little forgiveness margin)
+    var pl = { x: player.x + 5, y: player.y - player.h + 10, w: player.w - 10, h: player.h - 10 };
+    for(i = 0; i < obstacles.length; i++){
+      var o = obstacles[i];
+      if(pl.x < o.x + o.w && pl.x + pl.w > o.x && pl.y < o.y + o.h && pl.y + pl.h > o.y){
+        return gameOver();
+      }
+    }
+
+    draw();
+    rafId = requestAnimationFrame(loop);
+  }
+
+  function draw(){
+    ctx.clearRect(0, 0, W, H);
+
+    // ground
+    ctx.strokeStyle = 'rgba(143,240,255,0.35)';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(0, GROUND_Y + 2);
+    ctx.lineTo(W, GROUND_Y + 2);
+    ctx.stroke();
+
+    // faint track ticks
+    ctx.fillStyle = 'rgba(143,240,255,0.12)';
+    var tickOffset = (distance || 0) % 40;
+    for(var x = -tickOffset; x < W; x += 40){
+      ctx.fillRect(x, GROUND_Y + 8, 18, 4);
+    }
+
+    // obstacles (turnstile gates)
+    ctx.fillStyle = '#1c3a63';
+    ctx.strokeStyle = '#8ff0ff';
+    ctx.lineWidth = 1.5;
+    obstacles.forEach(function(o){
+      ctx.fillRect(o.x, o.y, o.w, o.h);
+      ctx.strokeRect(o.x, o.y, o.w, o.h);
+    });
+
+    // player (simple rabbit silhouette)
+    var px = player.x, py = player.y;
+    ctx.fillStyle = '#eaf6ff';
+    // body
+    ctx.beginPath();
+    ctx.ellipse(px + 15, py - 16, 15, 18, 0, 0, Math.PI * 2);
+    ctx.fill();
+    // ears
+    ctx.fillRect(px + 6, py - 40, 6, 22);
+    ctx.fillRect(px + 18, py - 40, 6, 22);
+    // eye
+    ctx.fillStyle = '#04121e';
+    ctx.beginPath();
+    ctx.arc(px + 21, py - 20, 2, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  function gameOver(){
+    state = 'over';
+    if(rafId) cancelAnimationFrame(rafId);
+
+    Store.submitScore(currentProfile.wallet, currentProfile.username, score, CURRENT_WEEK);
+    var best = Store.getBestForWallet(currentProfile.wallet, CURRENT_WEEK);
+    hudBest.textContent = best;
+
+    renderLeaderboard(score);
+    showScreen('leaderboard');
+  }
+
+  function renderLeaderboard(finalScore){
+    document.getElementById('lb-subtitle').textContent =
+      finalScore !== undefined ? ('Your score: ' + finalScore) : '';
+    var list = document.getElementById('leaderboard-list');
+    var top = Store.getTopScores(CURRENT_WEEK, 10);
+    list.innerHTML = '';
+    if(top.length === 0){
+      list.innerHTML = '<li class="lb-empty">No runs yet this week — be the first!</li>';
+      return;
+    }
+    top.forEach(function(entry, i){
+      var li = document.createElement('li');
+      li.className = 'lb-row' + (i < 5 ? ' top5' : '');
+      var shortWallet = entry.wallet.slice(0, 6) + '…' + entry.wallet.slice(-4);
+      li.innerHTML =
+        '<span class="lb-rank">#' + (i + 1) + '</span>' +
+        '<span class="lb-name">' + escapeHtml(entry.username) +
+          '<div class="lb-wallet">' + shortWallet + '</div></span>' +
+        '<span class="lb-score">' + entry.score + '</span>';
+      list.appendChild(li);
+    });
+  }
+
+  function escapeHtml(str){
+    var div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  document.getElementById('play-again-btn').addEventListener('click', function(){
+    showScreen('game');
+    resetGame();
+  });
+
+  /* ---------------- input ---------------- */
+  canvas.addEventListener('pointerdown', jump);
+  overlay.addEventListener('pointerdown', jump);
+  window.addEventListener('keydown', function(e){
+    if(screens.game.classList.contains('active') && (e.code === 'Space' || e.code === 'ArrowUp')){
+      e.preventDefault();
+      jump();
+    }
+  });
+
+  /* ---------------- init ---------------- */
+  if(existingProfile && existingProfile.username && existingProfile.wallet){
+    // profile remembered on this device — still confirm via the form,
+    // but they can just hit "Save & Play" since fields are prefilled
+  }
+  resetGame();
+
+})();
+</script>
+
+</body>
+</html>
